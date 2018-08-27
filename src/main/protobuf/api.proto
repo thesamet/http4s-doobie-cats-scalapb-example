@@ -1,0 +1,65 @@
+/**
+  Messages in this file represent the request to our web API. The API expects them
+  to be JSON serialized where snake_case is converted into camelCase.
+*/
+
+syntax = "proto3";
+
+package spaces;
+
+import "scalapb/scalapb.proto";
+import "directory.proto";
+import "infra.proto";
+
+option (scalapb.options) = {
+  package_name: 'spaces.api.protos'
+  flat_package: true
+};
+
+// POST /createWorkspace
+message CreateWorkspaceRequest {
+  string name = 1;
+  repeated string group_refs = 2 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
+}
+
+// POST /createEnvironment
+message CreateEnvironmentRequest {
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+  string name = 2;
+}
+
+// POST /linkSourceRepository
+// POST /unlinkSourceRepository
+message LinkSourceRepositoryRequest {
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+  string ref = 2;
+}
+
+// POST /linkDatabase
+// POST /unlinkDatabase
+message LinkDatabaseRequest {
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+  int64 environment_id = 2 [(scalapb.field).type = "spaces.Ids.EnvironmentId"];
+  string ref = 3;
+}
+
+// Response messages:
+message Environment {
+  int64 id = 1 [(scalapb.field).type = "spaces.Ids.EnvironmentId"];
+  string name = 2;
+  repeated infra.Database databases = 3;
+}
+
+message Workspace {
+  int64 id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+  int64 version = 2;
+  int64 time_created = 3;
+  int64 last_modified = 4;
+  string name = 5;
+  repeated string group_ids = 6 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
+  repeated infra.SourceRepository repositories = 7;
+  repeated Environment environments = 8;
+
+  // FOR API OUTPUT ONLY
+  repeated auth.UserGroup owners = 1000;
+}

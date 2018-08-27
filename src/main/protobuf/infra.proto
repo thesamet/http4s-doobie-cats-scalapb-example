@@ -1,0 +1,31 @@
+/** Entities that own by other infrastructure services: databases and source repositories */
+syntax = "proto3";
+
+package infra;
+
+import "scalapb/scalapb.proto";
+
+option (scalapb.options) = {
+  package_name: 'spaces.infra.protos'
+  flat_package: true
+};
+
+message Database {
+  enum DatabaseType {
+    UNKNOWN = 0;
+    MYSQL = 1;
+    POSTGRES = 2;
+  };
+  string ref = 1;
+  DatabaseType db_type = 2;
+}
+
+message SourceRepository {
+  enum SourceRepositoryType {
+    UNKNOWN = 0;
+    GIT = 1;
+    SUBVERSION = 2;
+  };
+  string ref = 1;
+  SourceRepositoryType repo_type = 2;
+}

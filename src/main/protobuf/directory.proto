@@ -1,0 +1,26 @@
+/**  Entities that are owned by the directory services */
+
+syntax = "proto3";
+
+package spaces.auth;
+
+import "scalapb/scalapb.proto";
+
+option (scalapb.options) = {
+  flat_package: true
+};
+
+message User {
+    string user_id = 1 [(scalapb.field).type = "spaces.Ids.UserId"];
+    string name = 2;
+    string email = 3;
+
+    // List of groups the user belongs to
+    repeated string group_ids = 4 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
+}
+
+message UserGroup {
+    string group_id = 1 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
+    string name = 2;
+    repeated User users = 3;
+}
