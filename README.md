@@ -60,6 +60,9 @@ Regardless of the way you installed it, it is now accepting requests at port
 
 ### Creating a workspace
 
+Let's start by creating a workspace, and assign the group `g2` so we can
+actually access it later:
+
     curl -H "Authorization: Bearer t2"  -XPOST http://localhost:8080/createWorkspace \
         -d '{"name": "MyWorkspace", "groupRefs": ["g2"]}' -D -
 
@@ -71,6 +74,8 @@ Note the id of the created workspace, you will need it...
 
 ### Creating an environment
 
+Now, let's add an environment inside our workspace:
+
     curl -H "Authorization: Bearer t2"  -XPOST http://localhost:8080/createEnvironment \
         -d '{"name": "myenv", "workspaceId": "1"}' -D -
 
@@ -78,17 +83,21 @@ Take note of the environment id, you will need it....
 
 ### Linking/Unlinking a database to an environment
 
-Attach a database to the environment we just created:
+Each database has a `ref` that identifies it in the remote database management
+service. There are a few `refs` that are hard-coded in our fake remote
+database service.
+
+To link a database to the environment we just created:
 
     curl -H "Authorization: Bearer t2"  -XPOST http://localhost:8080/linkDatabase \
        -d '{"workspaceId": "1", "environmentId": "2", "ref": "mysql://abc"}' -D -
 
-Unlinking it:
+Note that it appears in the response.  To unlink it:
 
     curl -H "Authorization: Bearer t2"  -XPOST http://localhost:8080/unlinkDatabase \
        -d '{"workspaceId": "1", "environmentId": "2", "ref": "mysql://abc"}' -D -
 
-### Linking/Unlinking a repostiory to a workspace:
+### Linking/Unlinking a repository to a workspace:
 
     curl -H "Authorization: Bearer t2"  -XPOST http://localhost:8080/linkSourceRepository \
        -d '{"ref": "git://xyz", "workspaceId": "1"}' -D -
