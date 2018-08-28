@@ -22,10 +22,21 @@ message CreateWorkspaceRequest {
   repeated string group_refs = 2 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
 }
 
+// POST /deleteWorkspace
+message DeleteWorkspaceRequest {
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+}
+
 // POST /createEnvironment
 message CreateEnvironmentRequest {
   int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
   string name = 2;
+}
+
+// POST /deleteEnvironment
+message DeleteEnvironmentRequest {
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+  int64 environment_id = 2 [(scalapb.field).type = "spaces.Ids.EnvironmentId"];
 }
 
 // POST /linkSourceRepository
@@ -53,12 +64,13 @@ message Environment {
 message Workspace {
   int64 id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
   int64 version = 2;
-  int64 time_created = 3;
-  int64 last_modified = 4;
-  string name = 5;
-  repeated string group_ids = 6 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
-  repeated infra.SourceRepository repositories = 7;
-  repeated Environment environments = 8;
+  bool is_deleted = 3;
+  int64 time_created = 4;
+  int64 last_modified = 5;
+  string name = 6;
+  repeated string group_ids = 7 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
+  repeated infra.SourceRepository repositories = 8;
+  repeated Environment environments = 9;
 
   // FOR API OUTPUT ONLY
   repeated auth.UserGroup owners = 1000;

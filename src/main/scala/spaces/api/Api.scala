@@ -2,13 +2,9 @@ package spaces.api
 
 import cats.effect.IO
 import cats.implicits._
+import io.circe.Json
 import org.http4s.{AuthedRequest, AuthedService, Response}
-import spaces.api.protos.{
-  CreateEnvironmentRequest,
-  CreateWorkspaceRequest,
-  LinkDatabaseRequest,
-  LinkSourceRepositoryRequest
-}
+import spaces.api.protos._
 import spaces.auth.User
 import spaces.services._
 
@@ -32,19 +28,33 @@ private class Api(workspaceService: WorkspaceService,
         r <- Ok(workspace)
       } yield r
 
+    case req @ POST -> Root / "deleteWorkspace" as user =>
+      for {
+        req <- req.req.as[DeleteWorkspaceRequest]
+        workspace <- workspaceService.getWorkspace(req.workspaceId, user)
+        ws <- Ok(workspaceService.deleteWorkspace(workspace))
+      } yield ws
+
     case req @ POST -> Root / "createEnvironment" as user =>
       for {
         req <- req.req.as[CreateEnvironmentRequest]
-        workspace <- workspaceService.get(req.workspaceId, user)
+        workspace <- workspaceService.getWorkspace(req.workspaceId, user)
         envId <- idService.newEnvironmentId
         env <- workspaceService.addEnvironment(workspace, envId, req.name)
         r <- Ok(env)
       } yield r
 
+    case req @ POST -> Root / "deleteEnvironment" as user =>
+      for {
+        req <- req.req.as[DeleteEnvironmentRequest]
+        workspace <- workspaceService.getWorkspace(req.workspaceId, user)
+        ws <- Ok(workspaceService.deleteEnvironment(workspace, req.environmentId))
+      } yield ws
+
     case req @ POST -> Root / "linkSourceRepository" as user =>
       for {
         req <- req.req.as[LinkSourceRepositoryRequest]
-        workspace <- workspaceService.get(req.workspaceId, user)
+        workspace <- workspaceService.getWorkspace(req.workspaceId, user)
         ws <- workspaceService.linkSourceRepository(workspace, req.ref)
         r <- Ok(ws)
       } yield r
@@ -52,7 +62,7 @@ private class Api(workspaceService: WorkspaceService,
     case req @ POST -> Root / "unlinkSourceRepository" as user =>
       for {
         req <- req.req.as[LinkSourceRepositoryRequest]
-        workspace <- workspaceService.get(req.workspaceId, user)
+        workspace <- workspaceService.getWorkspace(req.workspaceId, user)
         ws <- workspaceService.unlinkSourceRepository(workspace, req.ref)
         r <- Ok(ws)
       } yield r
@@ -60,7 +70,7 @@ private class Api(workspaceService: WorkspaceService,
     case req @ POST -> Root / "linkDatabase" as user =>
       for {
         req <- req.req.as[LinkDatabaseRequest]
-        workspace <- workspaceService.get(req.workspaceId, user)
+        workspace <- workspaceService.getWorkspace(req.workspaceId, user)
         ws <- workspaceService.linkDatabase(workspace,
                                             req.environmentId,
                                             req.ref)
@@ -70,16 +80,24 @@ private class Api(workspaceService: WorkspaceService,
     case req @ POST -> Root / "unlinkDatabase" as user =>
       for {
         req <- req.req.as[LinkDatabaseRequest]
-        workspace <- workspaceService.get(req.workspaceId, user)
+        workspace <- workspaceService.getWorkspace(req.workspaceId, user)
         ws <- workspaceService.unlinkDatabase(workspace,
                                               req.environmentId,
                                               req.ref)
         r <- Ok(ws)
       } yield r
 
+    case req @ GET -> Root / "workspaces" as user =>
+      import org.http4s.circe._
+      for {
+        wss <- workspaceService.listWorkspaces(user)
+        res <- Ok(Json.arr(wss.map(id => Json.fromLong(id.id)): _*))
+      } yield res
+
+
     case req @ GET -> Root / "workspaces" / WorkspaceIdVar(workspaceId) as user =>
       for {
-        ws <- workspaceService.get(workspaceId, user)
+        ws <- workspaceService.getWorkspace(workspaceId, user)
         // Get all groups in parallel
         groups <- ws.groupIds.toVector.parFlatTraverse { t =>
           directoryService.getGroup(t).map(_.toVector)
@@ -91,7 +109,7 @@ private class Api(workspaceService: WorkspaceService,
     case req @ GET -> Root / "workspaces" / WorkspaceIdVar(workspaceId) / "environments" / EnvironmentIdVar(
           envId) as user =>
       for {
-        ws <- workspaceService.get(workspaceId, user)
+        ws <- workspaceService.getWorkspace(workspaceId, user)
         env <- IO.fromEither(
           ws.environments
             .find(_.id == envId)
@@ -103,7 +121,7 @@ private class Api(workspaceService: WorkspaceService,
           envId) /: "databases" /: dbRef as user =>
       val dbRefStr = dbRef.toString.stripPrefix("/")
       for {
-        ws <- workspaceService.get(workspaceId, user)
+        ws <- workspaceService.getWorkspace(workspaceId, user)
         env <- IO.fromEither(
           ws.environments
             .find(_.id == envId)
@@ -118,7 +136,7 @@ private class Api(workspaceService: WorkspaceService,
     case req @ GET -> "workspaces" /: WorkspaceIdVar(workspaceId) /: "repositories" /: repoRef as user =>
       val repoRefStr = repoRef.toString.stripPrefix("/")
       for {
-        ws <- workspaceService.get(workspaceId, user)
+        ws <- workspaceService.getWorkspace(workspaceId, user)
         repo <- IO.fromEither(
           ws.repositories
             .find(_.ref == repoRefStr)

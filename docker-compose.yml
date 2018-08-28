@@ -27,4 +27,5 @@ services:
       source: .
       target: /opt/spaces
     working_dir: /opt/spaces
+    user: $UID
     command: "sbt ~reStart"

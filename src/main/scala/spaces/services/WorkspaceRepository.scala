@@ -18,6 +18,10 @@ trait WorkspaceRepository {
   def get(id: WorkspaceId): IO[Option[Workspace]]
 
   def store(workspace: Workspace): IO[Workspace]
+
+  // Returns all workspaces in the repository. Obviously this is drastically over-simplified: no pagination,
+  // filtering, sorting, etc.
+  def all: IO[Vector[Workspace]]
 }
 
 /** Concrete implementation that is backed by a SQL database.
@@ -90,6 +94,15 @@ class WorkspaceRepositoryImpl(xa: Transactor[IO]) extends WorkspaceRepository {
             "Component is already associated with another workspace")
       })
       .flatMap(IO.fromEither)
+  }
+
+  def all: IO[Vector[Workspace]] = {
+    sql"""SELECT bin from workspaces w1 WHERE
+            w1.version = (SELECT max(version) FROM workspaces w2 WHERE w2.workspace_id = w1.workspace_id)"""
+      .query[Array[Byte]]
+      .to[Vector]
+      .transact(xa)
+      .map(_.map(Workspace.parseFrom))
   }
 
   // Vendor-specific error code for unique index constraints.

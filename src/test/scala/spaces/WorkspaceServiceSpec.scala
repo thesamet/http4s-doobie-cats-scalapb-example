@@ -1,25 +1,13 @@
 package spaces
 
 import cats.effect.IO
-import org.http4s.{
-  EntityDecoder,
-  Header,
-  Headers,
-  Method,
-  Request,
-  Status,
-  Uri
-}
+import io.circe.Json
+import org.http4s.{EntityDecoder, Header, Headers, Method, Request, Status, Uri}
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.scalatest.FlatSpec
 import io.circe.literal._
-import spaces.api.protos.{
-  CreateEnvironmentRequest,
-  LinkDatabaseRequest,
-  LinkSourceRepositoryRequest,
-  Workspace
-}
+import spaces.api.protos._
 import spaces.infra.protos.Database
 import spaces.infra.protos.Database.DatabaseType.MYSQL
 
@@ -43,6 +31,8 @@ class WorkspaceServiceSpec extends FlatSpec {
                 headers = Headers(Header("Authorization", "Bearer t1")))
 
   "workspace service" should "allow story" in {
+    assert(runRequest[Json](request(GET, s"/workspaces"), Ok).asArray.get.isEmpty)
+
     val resp = runRequest[Workspace](
       request(POST, "/createWorkspace")
         .withBody(json"""{"name": "myws", "groupRefs": ["g1"]}""")
@@ -51,6 +41,8 @@ class WorkspaceServiceSpec extends FlatSpec {
     )
 
     val wsId = resp.id
+
+    assert(runRequest[Json](request(GET, s"/workspaces"), Ok).asArray.get.nonEmpty)
 
     val ws2 = runRequest[Workspace](request(GET, s"/workspaces/${wsId.id}"), Ok)
 
@@ -120,5 +112,33 @@ class WorkspaceServiceSpec extends FlatSpec {
       Ok
     )
     assert(ws8.environments.find(_.name == "myenv").get.databases.isEmpty)
+
+    val ws9 = runRequest[Workspace](
+      request(POST, s"/deleteEnvironment")
+        .withBody(
+        DeleteEnvironmentRequest(
+          workspaceId = wsId,
+          environmentId = envId,
+        )
+      )
+      .unsafeRunSync(),
+      Ok
+    )
+    assert(!ws9.environments.exists(_.name == "myenv"))
+
+    val ws10 = runRequest[Workspace](
+      request(POST, s"/deleteWorkspace")
+        .withBody(
+          DeleteWorkspaceRequest(
+            workspaceId = wsId
+          )
+        )
+        .unsafeRunSync(),
+      Ok
+    )
+    assert(ws10.isDeleted)
+    runRequest[String](request(GET, s"/workspaces/${wsId.id}"), NotFound)
+
+    assert(runRequest[Json](request(GET, s"/workspaces"), Ok).asArray.get.isEmpty)
   }
 }

@@ -20,12 +20,18 @@ import spaces.api.protos._
 trait WorkspaceService {
 
   /** Returns a workspace by id, but only if the given user is allowed to view it */
-  def get(id: WorkspaceId, user: User): IO[Workspace]
+  def getWorkspace(id: WorkspaceId, user: User): IO[Workspace]
+
+  /** Lists all workspaces available to us */
+  def listWorkspaces(user: User): IO[Seq[WorkspaceId]]
 
   /** Creates a new workspace */
   def newWorkspace(workspaceId: WorkspaceId,
                    name: String,
                    owners: Seq[UserGroupId]): IO[Workspace]
+
+  /** Deletes a workspace */
+  def deleteWorkspace(workspace: Workspace): IO[Workspace]
 
   /** Adds an environment to an existing workspace */
   def addEnvironment(workspace: Workspace,
@@ -60,11 +66,19 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
                            infraService: InfraService)
     extends WorkspaceService {
 
-  def get(id: WorkspaceId, user: User): IO[Workspace] = {
+  def getWorkspace(id: WorkspaceId, user: User): IO[Workspace] = {
     OptionT(repo.get(id))
+      .filterNot(_.isDeleted)
       .getOrElseF(IO.raiseError(ObjectNotFound("Workspace not found")))
       .ensure(NoAccess("Access forbidden"))(
         _.groupIds.toSet.intersect(user.groupIds.toSet).nonEmpty)
+  }
+
+  def listWorkspaces(user: User): IO[Seq[WorkspaceId]] = {
+    repo.all.map(_.collect {
+      case ws if !ws.isDeleted && ws.groupIds.toSet.intersect(user.groupIds.toSet).nonEmpty =>
+        ws.id
+    })
   }
 
   def ensure(cond: Boolean)(error: Throwable) =
@@ -83,6 +97,12 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
         environments = Seq.empty
       )
     )
+
+  override def deleteWorkspace(workspace: Workspace): IO[Workspace] = {
+    repo.store(
+      workspace.withIsDeleted(true)
+    )
+  }
 
   override def addEnvironment(workspace: Workspace,
                               environmentId: EnvironmentId,
