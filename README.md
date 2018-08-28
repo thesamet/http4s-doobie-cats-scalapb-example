@@ -181,6 +181,14 @@ When a workspace is created, the user specifies which groups may have access
 to the workspace. Only if a user is a member of these groups they are able to
 perform any operation on it.
 
+The StaticDirectoryService defines three users:
+
+| User id     | Api token     | Group ids   |
+|-------------|---------------|-------------|
+| User 1      | Bearer t1     | g1, g2      |
+| User 2      | Bearer t2     | g2, g3      |
+| User 3      | Bearer t2     |             |
+
 ## Tests
 
 The tests are in src/main/test, to run:

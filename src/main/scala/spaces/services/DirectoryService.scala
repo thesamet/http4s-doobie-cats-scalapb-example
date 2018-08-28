@@ -24,7 +24,7 @@ object StaticDirectoryService extends DirectoryService {
                    "User 2",
                    "user2@email.com",
                    Seq(UserGroupId("g2"), UserGroupId("g3")))
-  val user3 = User(UserId("user2"), "User 2", "user2@email.com", Seq())
+  val user3 = User(UserId("user3"), "User 3", "user3@email.com", Seq())
 
   override def fromApiToken(token: String): IO[Option[User]] = IO.pure {
     token match {
