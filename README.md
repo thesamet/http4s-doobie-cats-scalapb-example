@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/thesamet/spaces.svg?branch=master)](https://travis-ci.org/thesamet/spaces)
+
 # Spaces
 
 Spaces is an API that allows CRUD of workspaces.
