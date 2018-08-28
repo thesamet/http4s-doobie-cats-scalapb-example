@@ -29,8 +29,13 @@ environment that consists of a MySQL database and a Scala API server.
        cd spaces
        docker-compose up
 
-Hold on for 10 minutes while it downloads and compiles.  The service is set up such that
-file edits will get it to recompile and build.
+Hold on for 10 minutes while it downloads and compiles - it is going to be slow for
+the first time when all the dependencies are needed to be downloaded. 
+
+You will see a message that the server is ready once it is ready...
+
+You can make edits to the Scala code and the project will get restarted after you save 
+(note that proto edits don't trigger a recompile).
 
 ## Running without docker
 
@@ -46,7 +51,7 @@ Update src/main/resources/application.conf to point at the database correctly.
 
     brew install sbt
 
-    sbt run
+    sbt reStart
 
 ## Using this thing
 
@@ -62,7 +67,7 @@ Note the id of the created workspace, you will need it...
 
 ### Querying the workspace
 
-    curl -H "Authorization: Bearer t2"  -XPOST http://localhost:8080/workspaces/1
+    curl -H "Authorization: Bearer t2"  -XGET http://localhost:8080/workspaces/1
 
 ### Creating an environment
 
@@ -105,23 +110,23 @@ The following routes are available to fetch only sub-components:
 
 ## Guided tour of the code: starting points
 
-- The request and response formats are [https://github.com/thesamet/spaces/blob/master/src/main/protobuf/api.proto](defined here) (look also in the
-  directory)
+- The request and response formats are [api.proto](https://github.com/thesamet/spaces/blob/master/src/main/protobuf/api.proto)
+  also look around the [protobuf directory](https://github.com/thesamet/spaces/blob/master/src/main/protobuf)
 
-- The [https://github.com/thesamet/spaces/tree/master/src/main/scala/spaces/services](services directory) contains abstract interfaces and concrete
+- The [services directory](https://github.com/thesamet/spaces/tree/master/src/main/scala/spaces/services) contains abstract interfaces and concrete
   implementations.
 
-- The main business logic is at [https://github.com/thesamet/spaces/blob/master/src/main/scala/spaces/services/WorkspaceService.scala](WorkspaceService.scala)
+- The main business logic is at [WorkspaceService.scala](https://github.com/thesamet/spaces/blob/master/src/main/scala/spaces/services/WorkspaceService.scala)
 
 - Database and source repositories are added by external services which are
   modeled in
-  [https://github.com/thesamet/spaces/blob/master/src/main/scala/spaces/services/InfraService.scala](InfraService.scala)
+  [InfraService.scala](https://github.com/thesamet/spaces/blob/master/src/main/scala/spaces/services/InfraService.scala)
 
-- Request handling happens here: [https://github.com/thesamet/spaces/blob/master/src/main/scala/spaces/api/Api.scala](Api.scala)
+- Request handling happens here: [Api.scala](https://github.com/thesamet/spaces/blob/master/src/main/scala/spaces/api/Api.scala)
 
 ## Storage
 
-Database schema in [https://github.com/thesamet/spaces/blob/master/sql/schema.sql](schema.sql)
+Database schema in [schema.sql](https://github.com/thesamet/spaces/blob/master/sql/schema.sql)
 
 The workspace is the top-level entity. Our storage module always fetch and
 stores an entire workspace. This is expected to be fine since workspaces are
