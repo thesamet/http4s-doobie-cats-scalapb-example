@@ -7,7 +7,7 @@ import spaces.services._
 
 class WorkspaceRepositorySpec extends FlatSpec {
   TestDb.init()
-  def uniqueId = TestDb.uniqueIdService.newWorkspaceId.unsafeRunSync()
+  def uniqueId = TestDb.uniqueIdService.newId[Workspace].unsafeRunSync()
 
   val repo: WorkspaceRepository = new WorkspaceRepositoryImpl(TestDb.h2xa)
 

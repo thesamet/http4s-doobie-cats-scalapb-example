@@ -1,16 +1,16 @@
 package spaces.api
 
-import spaces.IdType
-import spaces.Ids.{EnvironmentId, WorkspaceId}
+import spaces.Id
+import spaces.api.protos.{Environment, Workspace}
 
 import scala.util.Try
 
-class IdPathVar[A <: IdType](cast: Int => A) {
-  def unapply(arg: String): Option[A] =
+class IdVar[A] {
+  def unapply(arg: String): Option[Id[A]] =
     if (arg.isEmpty) None
-    else Try(cast(arg.toInt)).toOption
+    else Try(Id[A](arg.toLong)).toOption
 }
 
-object WorkspaceIdVar extends IdPathVar(WorkspaceId(_))
+object WorkspaceIdVar extends IdVar[Workspace]
 
-object EnvironmentIdVar extends IdPathVar(EnvironmentId(_))
+object EnvironmentIdVar extends IdVar[Environment]

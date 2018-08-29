@@ -20,56 +20,56 @@ option (scalapb.options) = {
 // POST /createWorkspace
 message CreateWorkspaceRequest {
   string name = 1;
-  repeated string group_refs = 2 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
+  repeated string group_refs = 2 [(scalapb.field).type = "spaces.UserGroupId"];
 }
 
 // POST /deleteWorkspace
 message DeleteWorkspaceRequest {
-  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Id[Workspace]"];
 }
 
 // POST /createEnvironment
 message CreateEnvironmentRequest {
-  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Id[Workspace]"];
   string name = 2;
 }
 
 // POST /deleteEnvironment
 message DeleteEnvironmentRequest {
-  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
-  int64 environment_id = 2 [(scalapb.field).type = "spaces.Ids.EnvironmentId"];
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Id[Workspace]"];
+  int64 environment_id = 2 [(scalapb.field).type = "spaces.Id[Environment]"];
 }
 
 // POST /linkSourceRepository
 // POST /unlinkSourceRepository
 message LinkSourceRepositoryRequest {
-  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Id[Workspace]"];
   string ref = 2;
 }
 
 // POST /linkDatabase
 // POST /unlinkDatabase
 message LinkDatabaseRequest {
-  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
-  int64 environment_id = 2 [(scalapb.field).type = "spaces.Ids.EnvironmentId"];
+  int64 workspace_id = 1 [(scalapb.field).type = "spaces.Id[Workspace]"];
+  int64 environment_id = 2 [(scalapb.field).type = "spaces.Id[Environment]"];
   string ref = 3;
 }
 
 // Response messages:
 message Environment {
-  int64 id = 1 [(scalapb.field).type = "spaces.Ids.EnvironmentId"];
+  int64 id = 1 [(scalapb.field).type = "spaces.Id[Environment]"];
   string name = 2;
   repeated infra.Database databases = 3;
 }
 
 message Workspace {
-  int64 id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
+  int64 id = 1 [(scalapb.field).type = "spaces.Id[Workspace]"];
   int64 version = 2;
   bool is_deleted = 3;
   google.protobuf.Timestamp time_created = 4;
   google.protobuf.Timestamp last_modified = 5;
   string name = 6;
-  repeated string group_ids = 7 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
+  repeated string group_ids = 7 [(scalapb.field).type = "spaces.UserGroupId"];
   repeated infra.SourceRepository repositories = 8;
   repeated Environment environments = 9;
 
