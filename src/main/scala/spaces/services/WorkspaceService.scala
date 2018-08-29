@@ -3,7 +3,7 @@ package spaces.services
 import cats.data.OptionT
 import cats.effect.IO
 import cats.implicits._
-import spaces.Ids.{EnvironmentId, UserGroupId, WorkspaceId}
+import spaces.{Id, UserGroupId}
 import spaces.auth.User
 import spaces.api.protos._
 
@@ -20,13 +20,13 @@ import spaces.api.protos._
 trait WorkspaceService {
 
   /** Returns a workspace by id, but only if the given user is allowed to view it */
-  def getWorkspace(id: WorkspaceId, user: User): IO[Workspace]
+  def getWorkspace(id: Id[Workspace], user: User): IO[Workspace]
 
   /** Lists all workspaces available to us */
-  def listWorkspaces(user: User): IO[Seq[WorkspaceId]]
+  def listWorkspaces(user: User): IO[Seq[Id[Workspace]]]
 
   /** Creates a new workspace */
-  def newWorkspace(workspaceId: WorkspaceId,
+  def newWorkspace(workspaceId: Id[Workspace],
                    name: String,
                    owners: Seq[UserGroupId]): IO[Workspace]
 
@@ -35,12 +35,12 @@ trait WorkspaceService {
 
   /** Adds an environment to an existing workspace */
   def addEnvironment(workspace: Workspace,
-                     environmentId: EnvironmentId,
+                     environmentId: Id[Environment],
                      name: String): IO[Workspace]
 
   /** Deletes an environment to an existing workspace */
   def deleteEnvironment(workspace: Workspace,
-                        environmentId: EnvironmentId): IO[Workspace]
+                        environmentId: Id[Environment]): IO[Workspace]
 
   // Link and unlink things. A concrete implementation would have a way to obtain metadata
   // about remote source repositories and databases.
@@ -51,11 +51,11 @@ trait WorkspaceService {
                              repositoryRef: String): IO[Workspace]
 
   def linkDatabase(workspace: Workspace,
-                   environmentId: EnvironmentId,
+                   environmentId: Id[Environment],
                    dbRef: String): IO[Workspace]
 
   def unlinkDatabase(workspace: Workspace,
-                     environment: EnvironmentId,
+                     environment: Id[Environment],
                      dbRef: String): IO[Workspace]
 }
 
@@ -66,7 +66,7 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
                            infraService: InfraService)
     extends WorkspaceService {
 
-  def getWorkspace(id: WorkspaceId, user: User): IO[Workspace] = {
+  def getWorkspace(id: Id[Workspace], user: User): IO[Workspace] = {
     OptionT(repo.get(id))
       .filterNot(_.isDeleted)
       .getOrElseF(IO.raiseError(ObjectNotFound("Workspace not found")))
@@ -74,7 +74,7 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
         _.groupIds.toSet.intersect(user.groupIds.toSet).nonEmpty)
   }
 
-  def listWorkspaces(user: User): IO[Seq[WorkspaceId]] = {
+  def listWorkspaces(user: User): IO[Seq[Id[Workspace]]] = {
     repo.all.map(_.collect {
       case ws if !ws.isDeleted && ws.groupIds.toSet.intersect(user.groupIds.toSet).nonEmpty =>
         ws.id
@@ -84,7 +84,7 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
   def ensure(cond: Boolean)(error: Throwable) =
     if (!cond) IO.raiseError(error) else IO.pure(())
 
-  override def newWorkspace(workspaceId: WorkspaceId,
+  override def newWorkspace(workspaceId: Id[Workspace],
                             name: String,
                             owners: Seq[UserGroupId]): IO[Workspace] =
     repo.store(
@@ -105,7 +105,7 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
   }
 
   override def addEnvironment(workspace: Workspace,
-                              environmentId: EnvironmentId,
+                              environmentId: Id[Environment],
                               name: String): IO[Workspace] =
     for {
       _ <- ensure(!workspace.environments.exists(_.name == name))(
@@ -123,7 +123,7 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
     } yield ws
 
   override def deleteEnvironment(workspace: Workspace,
-                                 environmentId: EnvironmentId): IO[Workspace] =
+                                 environmentId: Id[Environment]): IO[Workspace] =
     if (!workspace.environments.exists(_.id == environmentId))
       IO.raiseError(
         new ObjectNotFound("Environment with given id was not found"))
@@ -164,7 +164,7 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
   }
 
   override def linkDatabase(workspace: Workspace,
-                            environmentId: EnvironmentId,
+                            environmentId: Id[Environment],
                             dbRef: String): IO[Workspace] =
     workspace.environments.find(_.id == environmentId) match {
       case None =>
@@ -179,7 +179,7 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
     }
 
   override def unlinkDatabase(workspace: Workspace,
-                              environmentId: EnvironmentId,
+                              environmentId: Id[Environment],
                               dbRef: String): IO[Workspace] =
     for {
       updatedEnv <- IO.fromEither(

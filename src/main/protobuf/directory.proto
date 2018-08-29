@@ -11,16 +11,16 @@ option (scalapb.options) = {
 };
 
 message User {
-    string user_id = 1 [(scalapb.field).type = "spaces.Ids.UserId"];
+    string user_id = 1 [(scalapb.field).type = "spaces.UserId"];
     string name = 2;
     string email = 3;
 
     // List of groups the user belongs to
-    repeated string group_ids = 4 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
+    repeated string group_ids = 4 [(scalapb.field).type = "spaces.UserGroupId"];
 }
 
 message UserGroup {
-    string group_id = 1 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
+    string group_id = 1 [(scalapb.field).type = "spaces.UserGroupId"];
     string name = 2;
     repeated User users = 3;
 }

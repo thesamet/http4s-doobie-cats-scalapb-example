@@ -7,7 +7,7 @@ import doobie.enum.SqlState
 import doobie.free.connection.ConnectionIO
 import doobie.util.transactor.Transactor
 import doobie.util.update.Update
-import spaces.Ids.WorkspaceId
+import spaces.Id
 import spaces.api.protos._
 
 /** Workspace storage service.
@@ -15,7 +15,7 @@ import spaces.api.protos._
   * Provides get/store functionality for workspaces.
   */
 trait WorkspaceRepository {
-  def get(id: WorkspaceId): IO[Option[Workspace]]
+  def get(id: Id[Workspace]): IO[Option[Workspace]]
 
   def store(workspace: Workspace): IO[Workspace]
 
@@ -32,7 +32,7 @@ trait WorkspaceRepository {
 class WorkspaceRepositoryImpl(xa: Transactor[IO]) extends WorkspaceRepository {
   import doobie.implicits._
 
-  def get(id: WorkspaceId): IO[Option[Workspace]] = {
+  def get(id: Id[Workspace]): IO[Option[Workspace]] = {
     val select =
       sql"SELECT bin FROM `workspaces` WHERE workspace_id=${id.id} ORDER BY VERSION DESC LIMIT 1"
         .query[Array[Byte]]

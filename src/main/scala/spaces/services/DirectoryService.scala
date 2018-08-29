@@ -1,7 +1,7 @@
 package spaces.services
 
 import cats.effect.IO
-import spaces.Ids._
+import spaces.{UserGroupId, UserId}
 import spaces.auth.{User, UserGroup}
 
 /** Represents a remote user authentication/lookup service */

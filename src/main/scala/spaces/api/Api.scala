@@ -21,7 +21,7 @@ private class Api(workspaceService: WorkspaceService,
         req <- req.req
           .as[CreateWorkspaceRequest]
           .ensure(new InvalidRequest("Missing groups"))(_.groupRefs.nonEmpty)
-        wsId <- idService.newWorkspaceId
+        wsId <- idService.newId[Workspace]
         workspace <- workspaceService.newWorkspace(wsId,
                                                    req.name,
                                                    req.groupRefs)
@@ -39,7 +39,7 @@ private class Api(workspaceService: WorkspaceService,
       for {
         req <- req.req.as[CreateEnvironmentRequest]
         workspace <- workspaceService.getWorkspace(req.workspaceId, user)
-        envId <- idService.newEnvironmentId
+        envId <- idService.newId[Environment]
         env <- workspaceService.addEnvironment(workspace, envId, req.name)
         r <- Ok(env)
       } yield r
