@@ -4,6 +4,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import cats.implicits._
 import spaces.Ids.{EnvironmentId, UserGroupId, WorkspaceId}
+import spaces.api.Timestamps
 import spaces.auth.User
 import spaces.api.protos._
 
@@ -90,7 +91,7 @@ class WorkspaceServiceImpl(repo: WorkspaceRepository,
     repo.store(
       Workspace(
         workspaceId,
-        timeCreated = System.currentTimeMillis(),
+        timeCreated = Some(Timestamps.now),
         name = name,
         groupIds = owners,
         repositories = Seq.empty,

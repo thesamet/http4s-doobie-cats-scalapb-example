@@ -21,7 +21,7 @@ class WorkspaceRepositorySpec extends FlatSpec {
       upd <- repo.get(wsId)
     } yield upd).unsafeRunSync()
 
-    assert(ws.withVersion(1) == out.get.withLastModified(0))
+    assert(ws.withVersion(1).clearLastModified == out.get.clearLastModified)
   }
 
   it should "disallow two insertions of the same version (optimistic locking)" in {

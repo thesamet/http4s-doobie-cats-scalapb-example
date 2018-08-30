@@ -7,6 +7,7 @@ syntax = "proto3";
 
 package spaces;
 
+import "google/protobuf/timestamp.proto";
 import "scalapb/scalapb.proto";
 import "directory.proto";
 import "infra.proto";
@@ -65,8 +66,8 @@ message Workspace {
   int64 id = 1 [(scalapb.field).type = "spaces.Ids.WorkspaceId"];
   int64 version = 2;
   bool is_deleted = 3;
-  int64 time_created = 4;
-  int64 last_modified = 5;
+  google.protobuf.Timestamp time_created = 4;
+  google.protobuf.Timestamp last_modified = 5;
   string name = 6;
   repeated string group_ids = 7 [(scalapb.field).type = "spaces.Ids.UserGroupId"];
   repeated infra.SourceRepository repositories = 8;

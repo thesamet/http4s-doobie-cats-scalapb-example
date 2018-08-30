@@ -8,6 +8,7 @@ import doobie.free.connection.ConnectionIO
 import doobie.util.transactor.Transactor
 import doobie.util.update.Update
 import spaces.Ids.WorkspaceId
+import spaces.api.Timestamps
 import spaces.api.protos._
 
 /** Workspace storage service.
@@ -42,7 +43,7 @@ class WorkspaceRepositoryImpl(xa: Transactor[IO]) extends WorkspaceRepository {
 
   def store(_workspace: Workspace): IO[Workspace] = {
     val workspace = _workspace
-      .withLastModified(System.currentTimeMillis())
+      .withLastModified(Timestamps.now)
       .withVersion(_workspace.version + 1)
 
     // Optimistic update (transaction would fail if there is a version conflict)
