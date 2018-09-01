@@ -2,9 +2,13 @@
 
 # Spaces
 
-Spaces is an API that allows CRUD of workspaces.
+This is a toy project that I used to explore http4s, Doobie and Cats. It is
+a simple CRUD API for domain objects over HTTP.
 
-A workspace consists of a collection of environments and source repositories.
+## The model
+
+Our top level model is the workspace which consists of a collection of environments
+and source repositories.
 
 An enviroment is a collection of databases.
 
@@ -15,9 +19,23 @@ An enviroment is a collection of databases.
 - http4s
 - ScalaPB
 
+## Running without docker
+
+Ensure you have MySQL running.
+
+In MySQL:
+
+    create database spaces;
+
+Execute the schema in sql/schema.sql inside the given databases.
+
+Update src/main/resources/application.conf to point at the database correctly.
+
+    sbt reStart
+
 ## Running locally inside Docker
 
-This is the easiest way. Using docker-compose you will get an isolated
+Using docker-compose you will get an isolated
 environment that consists of a MySQL database and a Scala API server.
 
 1. Install docker and docker-compose
@@ -39,21 +57,6 @@ You will see a message that the server is ready once it is ready...
 You can make edits to the Scala code and the project will get restarted after you save
 (note that proto edits don't trigger a recompile).
 
-## Running without docker
-
-Ensure you have MySQL running.
-
-In MySQL:
-
-    create database spaces;
-
-Execute the schema in sql/schema.sql inside the given databases.
-
-Update src/main/resources/application.conf to point at the database correctly.
-
-    brew install sbt
-
-    sbt reStart
 
 ## Using this thing
 
